@@ -1,0 +1,11 @@
+<html>
+    <body>
+        <div style="float: right;">
+            <h1>Cart</h1>
+        {%for i in items%}
+        <p>{{i.product}}</p><br>
+        <p>{{i.price}}</p><br>
+        {%endfor%}
+        </div>
+    </body>
+</html>

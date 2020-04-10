@@ -1,0 +1,22 @@
+<html>
+    <h1>welcome</h1>
+    <h6><a href="http://127.0.0.1:8000/book_app">Book an Appointments</a></h6>
+    <a href="http://127.0.0.1:8000/rejected">Rejected Appointments</a>
+
+    <h2>Your Requested Appointments</h2>
+    {%for i in ur_rq%}
+    <p>{{i.staff}}</p>
+    <p>{{i.treatment}}</p>
+    <p>{{i.time}}</p>
+    <p>{{i.outlet}}</p><hr>
+    {%endfor%}
+    <body>
+        <h2>Confirmed Appointments</h2>
+        {%for i in conf%}
+        <p>{{i.staff_id}}</p>
+        <p>{{i.treatment}}</p>
+        <p>{{i.time}}</p>
+        <p>{{i.outlet}}</p><hr>
+        {%endfor%}
+    </body>
+</html>

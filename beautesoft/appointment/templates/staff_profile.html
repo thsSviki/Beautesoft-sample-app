@@ -1,0 +1,61 @@
+<html>
+    <h1>welcome</h1>
+    
+    <h2> Appointments Requested</h2>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    {%for i in req%}
+    <tr>
+    <p>{{i.customer_n}}</p>
+    <p>{{i.treatment}}</p>
+    <p>{{i.time}}</p>
+    <p>{{i.outlet}}</p>
+
+    <button name=Submit type="submit" onclick="myFunction('{{i.customer_n}}','{{i.treatment}}','{{i.time}}','{{i.outlet}}')">Accept</button>
+    <button type="submit" onclick="myReject('{{i.customer_n}}','{{i.treatment}}','{{i.time}}','{{i.outlet}}')">Reject</button>
+    </tr><hr>
+    {%endfor%}
+    <body>
+        <h2>Your Upcoming Appointments</h2>
+        {%for i in con%}
+            <p>{{i.customer_n}}</p>
+            <p>{{i.treatment}}</p>
+            <p>{{i.time}}</p>
+            <p>{{i.customer_area}}</p><hr>
+        {%endfor%}
+    </body>
+</html>
+<script>
+    function myFunction(name,treatment,time,outlet){
+        alert(name);
+    $.ajax('http://127.0.0.1:8000/staff_profile', {
+    
+    type: 'POST',  
+    data: { name:name,treatment:treatment,time:time,outlet:outlet,csrfmiddlewaretoken: '{{ csrf_token }}'}, 
+     // data to submit
+    // success: function (data, status, xhr) {
+    //     $('p').append('status: ' + status + ', data: ' + data);
+    // },
+    // error: function (jqXhr, textStatus, errorMessage) {
+    //         $('p').append('Error' + errorMessage);
+    // }
+});
+    
+     }
+
+     function myReject(nd,td,ttd,od){
+        alert(name);
+    $.ajax('http://127.0.0.1:8000/staff_profile', {
+    
+    type: 'POST',  
+    data: { nd:nd,td:td,ttd:ttd,od:od,csrfmiddlewaretoken: '{{ csrf_token }}'}, 
+     // data to submit
+    // success: function (data, status, xhr) {
+    //     $('p').append('status: ' + status + ', data: ' + data);
+    // },
+    // error: function (jqXhr, textStatus, errorMessage) {
+    //         $('p').append('Error' + errorMessage);
+    // }
+});
+    
+     }
+ </script>
