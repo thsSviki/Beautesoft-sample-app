@@ -4,11 +4,13 @@
     </head>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <body>
+        <form method="POST"  >
+            {% csrf_token %}
             <select >
                 Treatment :<option value={{treatment}}>{{treatment}}</option>
             </select><br>
-            <form NAME="myform" onsubmit="getOption()" action='ur_ap'>
-                {% csrf_token %}
+            
+                
              <select id="staff"> 
              <!-- {%for i in staf%} -->
              
@@ -24,7 +26,7 @@
            
                 
                  
-                <input name=Submit type="submit" value="Request" />
+                <button  type="submit" onclick="getOption()">Register</button>
              </form>
     </body>
 
@@ -36,12 +38,12 @@
             var o = document.getElementById("o");
             var t = document.getElementById("t");
             // var value = selector[selector.selectedIndex].value;
-            
+            var v = "viki"
             alert(sel.value);
             
             $.ajax('http://127.0.0.1:8000/book_app_load', {
     type: 'POST',  // http method
-    data: { staff:sel.value,outlet:o.value,time:t.value,csrfmiddlewaretoken: '{{ csrf_token }}',}, 
+    data: { staff:sel.value,test:v,csrfmiddlewaretoken: '{{ csrf_token }}',}, 
      // data to submit
     /* success: function (data, status, xhr) {
         $('p').append('status: ' + status + ', data: ' + data);
