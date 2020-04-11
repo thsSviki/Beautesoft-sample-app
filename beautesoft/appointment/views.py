@@ -32,13 +32,14 @@ class Staff_load(APIView):
 
         return render(request, 'book_app_load.html',{"staf":staf,"treatment":book.treatment})
     def post(self, request):
-        staff = request.data.get('staff')
-        free = App_req.objects.filter(staff=staff,time=request.data.get('time')).exists()
-        free1 = Appointments.objects.filter(staff_id=staff,time=request.data.get('time')).exists()
+        if request.data.get("test"):
+            s.staff = request.data.get('staff')
+        free = App_req.objects.filter(staff=s.staff,time=request.data.get('time')).exists()
+        free1 = Appointments.objects.filter(staff_id=s.staff,time=request.data.get('time')).exists()
         if not free:
             if not free1:
                 try:
-                    appoint = App_req.objects.create(staff=staff,
+                    appoint = App_req.objects.create(staff=s.staff,
                                              customer_n=login.name,
                                              treatment=book.treatment,
                                              time=request.data.get('time'),
@@ -55,7 +56,7 @@ class Staff_load(APIView):
             print('already date booked')
             #messages.error(request, "date is already booked")
             return Response("data is already booked")
-        
+s = Staff_load()        
 #management api
 class Crm(APIView):
     def get(self, request):
