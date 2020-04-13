@@ -2,32 +2,41 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
 from rest_framework.views import APIView
-#from .serializer import *
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
 from .models import *
 from django.contrib import messages
 from sales.views import *
+from .services import *
 
 
-#customer view their appointment requests
+
 class Ur_app_rq(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated,]
     def get(self, request):
         conf = Appointments.objects.filter(customer_n=login.name)
         ur_rq = App_req.objects.filter(customer_n=login.name)
         return render(request,'ur_ap.html',{"ur_rq":ur_rq,"conf":conf})
 
-#customer booking an appointment
+
 class Book_app(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated,]
     def post(self, request):
         book.treatment=request.data.get('treatment')
-        # print(book.treatment)
+        
         return HttpResponseRedirect('book_app_load')
     def get(self, request):
-        return render(request, 'book_app.html')#,{"staffs":staffs})
+        return render(request, 'book_app.html')
 book = Book_app()
 
 class Staff_load(APIView):
     def get(self, request):
-        #print(book.treatment)
+        
         staf = Staff.objects.filter(expertise=book.treatment)
 
         return render(request, 'book_app_load.html',{"staf":staf,"treatment":book.treatment})
@@ -39,41 +48,45 @@ class Staff_load(APIView):
         if not free:
             if not free1:
                 try:
-                    appoint = App_req.objects.create(staff=s.staff,
-                                             customer_n=login.name,
-                                             treatment=book.treatment,
-                                             time=request.data.get('time'),
-                                             outlet=request.data.get('outlet'))
-                    print("sucessful")
+                    s.customer_n=login.name 
+                    s.treatment = book.treatment
+                    s.time = request.data.get('time')
+                    s.outlet = request.data.get('outlet') 
+                    AppointmentReqCreation()
+                    
                     return Response({"ok":"ok"})
                 except Exception as e:
-                    print(str(e))
+                    
                     return Response(str(e))
             else:
-                print("already booked")
+                
                 return Response("data is already booked")
         else:
-            print('already date booked')
-            #messages.error(request, "date is already booked")
+            
             return Response("data is already booked")
-s = Staff_load()        
-#management api
+s = Staff_load()      
+
 class Crm(APIView):
     def get(self, request):
         return render(request, 'crm.html')
 
-#management adding their staff   
+  
 class Add_staff(APIView):
+    def get(self, request):
+        return render(request, "add_staff.html")
     def post(self, request):
+        add.staff_name=request.data.get('staff_name')
+        add.expertise=request.data.get('expertise')
+        add.nationality=request.data.get('nationality')
+        add.email=request.data.get('email')
+        add.password=request.data.get('password')
         try:
-            staff = Staff.objects.create(staff_name=request.data.get('staff_name'),
-                            expertise=request.data.get('expertise'),
-                            nationality=request.data.get('nationality'))
+            AddStaffCreation()
             return render(request, 'ad_ok.html')
         except Exception as e:
             return Response(str(e))
 
-#staff login api
+add = Add_staff()
 class Staff_login(APIView):
     def get(self, request):
         return render(request,"staff_login.html")
@@ -96,8 +109,10 @@ class Staff_login(APIView):
             return Response("email is not valid")
 obj_staff = Staff_login()
 
-#staff profile api
+
 class Staff_profile(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated,]
     def get(self, request):
         req = App_req.objects.filter(staff=obj_staff.n)
         con = Appointments.objects.filter(staff_id=obj_staff.n)
@@ -105,39 +120,30 @@ class Staff_profile(APIView):
     def post(self, request):
         k =request.data.get('name')
         if k:
-            
-            con = Appointments.objects.create(customer_n=request.data.get('name'),
-                                                 customer_area=request.data.get('outlet'),
-                                                 treatment=request.data.get('treatment'),
-                                                 time=request.data.get('time'),
-                                                 staff_id=obj_staff.n)
-            App_req.objects.filter(staff=obj_staff.n,customer_n=request.data.get('name'),
-                                     treatment=request.data.get('treatment'),outlet=request.data.get("outlet")).delete()
-            return Response("sucess")
+            pro.customer_n=request.data.get('name'),
+            pro.customer_area=request.data.get('outlet'),
+            pro.treatment=request.data.get('treatment'),
+            pro.time=request.data.get('time'),
+            pro.staff_id=obj_staff.n
+            AppointmentCreation()
+            return Response("success")
         else:
-            nd=request.data.get('nd')
-            td=request.data.get('td')
-            od=request.data.get('od')
-            ttd=request.data.get("ttd")
-            print(nd)
-            print(td)
-            print(od)
-            App_req.objects.filter(staff=obj_staff.n,customer_n=nd,
-                                    treatment=td,
-                                    outlet=od).delete()
-            p=Rejected.objects.create(s_id=obj_staff.n,c_n=nd,tment=td,c_area=od,time=ttd)
-            
+            pro.nd=request.data.get('nd')
+            pro.td=request.data.get('td')
+            pro.od=request.data.get('od')
+            pro.ttd=request.data.get("ttd")
+            RejectedCreation()            
             return Response("confirmed")
-        # except Exception as e :
-        #     print(str(e))
-        #     return Response(str(e))
-
+       
+pro = Staff_profile()
 
 
 
 class Reject(APIView):
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated,]
     def get(self, request):
-        print(login.name)
+        
         sentence = Rejected.objects.filter(c_n=login.name)
 
 
