@@ -6,6 +6,12 @@ from .serializer import *
 from .models import *
 import stripe 
 from django.conf import settings 
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
+from .services import *
 
 
 
@@ -13,22 +19,22 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class Customer(APIView):
     def get(self, request):
-        #print('1')
+        
         return render(request,'register.html')
     def post(self, request):
         se = UserSerializer(data=request.data)
         if se.is_valid(raise_exception=True):
             user_exist = Custom.objects.filter(email=request.data.get('email')).exists()
             name_exist= Custom.objects.filter(name=request.data.get('name')).exists()
+            obj_c.name=request.data.get('name')
+            obj_c.email=request.data.get('email')
+            obj_c.password=request.data.get('password')
             if not user_exist:
                 if not name_exist:
                     try:
-                #print("2")
-                        customer = Custom.objects.create(
-                            name=request.data.get('name'),
-                            email=request.data.get('email'),
-                            password=request.data.get('password'))
-                #print('viki')
+                        customer()
+                        TokenCreation()
+                        
                         return HttpResponseRedirect('log')
                     except Exception as e:
                         return Response({"Response": str(e)})
@@ -36,26 +42,21 @@ class Customer(APIView):
                     return Response("user name is already taken")
             else:
                 return Response("email id is already exist")
-
+obj_c = Customer()
 
 class Login(APIView):
     def get(self, request):
         return render(request, "login.html")
     def post(self, request):
         user_exist = Custom.objects.filter(email=request.data.get('email')).exists()
-        name = Custom.objects.get(email=request.data.get('email'))
-        print(name)
-        #for i in name:
-            #print(i.name)
-        #login.name=name.name
-        print(name.name)
-        login.name=name.name
-        print(login.name)
+        
         ps = Custom.objects.filter(
         email=request.data.get('email'),
         password=request.data.get('password'))
         if  user_exist:
             if  ps:
+                name = Custom.objects.get(email=request.data.get('email'))
+                login.name=name.name
                 obj.n=request.data.get("email")
                 return HttpResponseRedirect('home')
             else:
@@ -67,6 +68,9 @@ obj = Login()
 login = Login()
 
 class Catalog(APIView):
+    
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated,]
     def get(self, request):
         try:
             pro = Product.objects.all()
@@ -83,33 +87,21 @@ class Catalog(APIView):
     def post(self, request):
         try:
             pur = Purchase.objects.filter(purchaser=obj.n)
-            k = Purchase.objects.create(
-                        product=request.data.get('product'),price=request.data.get('price'),purchaser=obj.n)
-            print("4")
+            cat.product = request.data.get('product')
+            cat.price = request.data.get('price')
+            cat.purchaser = purchaser=obj.n
+            PurchaseCreation()
             return Response("ok")
         except Exception as e:
             return Response(str(e))
             
 cat = Catalog()
 
-#class Cart(APIView):
- #   def get(self, request):
-  #      items = Purchase.objects.filter(purchaser=obj.n)
-
-   #     return render(request,'cart.html',{"items":items})
-   # def post(self, request):
-    #    try:
-     #       k = Purchase.objects.create(
-      #                  product=request.data.get('product'),price=request.data.get('price'),purchaser=obj.n)
-       #     print("4")
-        #    return Response('ok')
-        #except Exception as e:
-         #   return HttpResponse(str(e))
 class Pay(APIView):
-    #template_name = 'paygate.html'
-
-    def get(self,request,**kwargs): # new
-        context = {}#super().get_context_data(**kwargs)
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated,]
+    def get(self,request,**kwargs): 
+        context = {}
         context['key'] = settings.STRIPE_PUBLISHABLE_KEY
         tot = {"tot":cat.total}
         tot.update(context) 
@@ -117,6 +109,8 @@ class Pay(APIView):
    
 
 class Charge(APIView): 
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [IsAuthenticated,]
     def post(self,request):
         charge = stripe.Charge.create(
                 amount = int(cat.total),
