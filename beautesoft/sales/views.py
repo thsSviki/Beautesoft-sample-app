@@ -89,7 +89,7 @@ class Catalog(APIView):
             pur = Purchase.objects.filter(purchaser=obj.n)
             cat.product = request.data.get('product')
             cat.price = request.data.get('price')
-            cat.purchaser = purchaser=obj.n
+            cat.purchaser = obj.n
             PurchaseCreation()
             return Response("ok")
         except Exception as e:
